@@ -1,0 +1,72 @@
+{
+  "name": "gate-keeper",
+  "version": "0.1.0",
+  "description": "Offline macOS gatehouse visitor management app",
+  "main": "dist/main/main.js",
+  "author": "Gate Keeper",
+  "license": "MIT",
+  "scripts": {
+    "predev": "node scripts/free-dev-port.mjs",
+    "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:preload\" \"npm:dev:electron\"",
+    "dev:renderer": "vite --config vite.renderer.config.ts",
+    "dev:main": "tsc -p tsconfig.main.json --watch",
+    "dev:preload": "tsc -p tsconfig.preload.json --watch",
+    "dev:electron": "wait-on tcp:5173 dist/main/main.js dist/preload/preload.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dev:debug": "cross-env GK_DEBUG=1 npm run dev",
+    "build": "npm run build:renderer && npm run build:main",
+    "build:renderer": "vite build --config vite.renderer.config.ts",
+    "build:main": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "test": "npm run rebuild:sqlite:node && vitest run && npm run rebuild:sqlite:electron",
+    "seed": "tsx scripts/seed-demo.ts",
+    "postinstall": "npm run rebuild:sqlite:electron",
+    "rebuild:sqlite:node": "npm rebuild better-sqlite3",
+    "rebuild:sqlite:electron": "electron-builder install-app-deps",
+    "dist:mac": "npm run build && electron-builder --mac dmg"
+  },
+  "build": {
+    "appId": "com.gatekeeper.offline",
+    "productName": "GATE KEEPER",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "migrations/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.business"
+    }
+  },
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "better-sqlite3": "^12.2.0",
+    "bwip-js": "^4.8.0",
+    "dayjs": "^1.11.13",
+    "electron-store": "^10.1.0",
+    "jszip": "^3.10.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.2.1",
+    "electron-builder": "^25.1.8",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8",
+    "wait-on": "^8.0.1"
+  }
+}
